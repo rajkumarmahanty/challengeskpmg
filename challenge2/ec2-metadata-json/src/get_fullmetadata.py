@@ -1,6 +1,7 @@
 import requests
 import json
 
+#This URL works when executed within the EC whose metadata you want to fetch
 metadata_url = 'http://169.254.169.254/latest/'
 
 
