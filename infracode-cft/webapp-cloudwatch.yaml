@@ -1,0 +1,135 @@
+# Note, This template deploys CloudWatch Setup
+#
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+    This template deploys CloudWatch Setup,
+    Scale-up if CPU > 80% for 5 minutes
+    Scale-down if CPU < 25% for 5 minutes
+
+Parameters: 
+
+  CH1WebScalingGroup:
+    Description: "A reference to the WebServer AutoScalingGroup"
+    Type: "String"
+
+  CH1WebServerScaleUpPolicy:
+    Description: "A reference to the WebServer ScaleUpPolicy"
+    Type: "String"
+
+  CH1WebServerScaleDownPolicy:
+    Description: "A reference to the WebServer ScaleDownPolicy"
+    Type: "String"
+
+  CH1AppScalingGroup:
+    Description: "A reference to the AppServer AutoScalingGroup"
+    Type: "String"
+
+  CH1APPServerScaleUpPolicy:
+    Description: "A reference to the AppServer ScaleUpPolicy"
+    Type: "String"
+
+  CH1APPServerScaleDownPolicy:
+    Description: "A reference to the AppServer ScaleDownPolicy"
+    Type: "String"
+
+
+Resources:
+
+  #  Web Server Alarm High Load
+  WebCPUAlarmHigh:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmDescription: "Scale-up if CPU > 80% for 5 minutes"
+      MetricName: "CPUUtilization"
+      Namespace: "AWS/EC2"
+      Statistic: "Average"
+      Period: '300'
+      EvaluationPeriods: '1'
+      Threshold: '80'
+      AlarmActions:
+      - Ref: "CH1WebServerScaleUpPolicy"
+      Dimensions:
+      - Name: "AutoScalingGroupName"
+        Value:
+          Ref: "CH1WebScalingGroup"
+      ComparisonOperator: "GreaterThanThreshold"
+
+  # Web Server Alarm Low Load
+  WebCPUAlarmLow:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmDescription: "Scale-down if CPU < 25% for 5 minutes"
+      MetricName: "CPUUtilization"
+      Namespace: "AWS/EC2"
+      Statistic: "Average"
+      Period: '300'
+      EvaluationPeriods: '1'
+      Threshold: '25'
+      AlarmActions:
+      - Ref: "CH1WebServerScaleDownPolicy"
+      Dimensions:
+      - Name: "AutoScalingGroupName"
+        Value:
+          Ref: "CH1WebScalingGroup"
+      ComparisonOperator: "GreaterThanThreshold"
+
+  #  App Server Alarm High Load
+  AppCPUAlarmHigh:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmDescription: "Scale-up if CPU > 80% for 5 minutes"
+      MetricName: "CPUUtilization"
+      Namespace: "AWS/EC2"
+      Statistic: "Average"
+      Period: '300'
+      EvaluationPeriods: '1'
+      Threshold: '80'
+      AlarmActions:
+      - Ref: "CH1APPServerScaleUpPolicy"
+      Dimensions:
+      - Name: "AutoScalingGroupName"
+        Value:
+          Ref: "CH1AppScalingGroup"
+      ComparisonOperator: "GreaterThanThreshold"
+
+  # App Server Alarm Low Load
+  AppCPUAlarmLow:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmDescription: "Scale-down if CPU < 25% for 5 minutes"
+      MetricName: "CPUUtilization"
+      Namespace: "AWS/EC2"
+      Statistic: "Average"
+      Period: '300'
+      EvaluationPeriods: '1'
+      Threshold: '25'
+      AlarmActions:
+      - Ref: "CH1APPServerScaleDownPolicy"
+      Dimensions:
+      - Name: "AutoScalingGroupName"
+        Value:
+          Ref: "CH1AppScalingGroup"
+      ComparisonOperator: "GreaterThanThreshold"
+
+
+Outputs:
+
+  WebTrafficAlarmHigh:
+    Description: "CloudWatch Reference Web AlarmHigh"
+    Value: !Ref "WebCPUAlarmHigh"
+
+  WebTrafficAlarmLow: 
+    Description: "CloudWatch Reference Web AlarmLow"
+    Value: !Ref "WebCPUAlarmLow"
+
+  AppTrafficAlarmHigh: 
+    Description: "CloudWatch Reference App AlarmHigh"
+    Value: !Ref "AppCPUAlarmHigh"
+
+  AppTrafficAlarmLow: 
+    Description: "CloudWatch Reference App AlarmLow"
+    Value: !Ref "AppCPUAlarmLow"
+
+
+

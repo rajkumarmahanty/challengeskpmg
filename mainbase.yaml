@@ -1,0 +1,290 @@
+# Note : The Cloudformation Security Group IP address is open by default (testing purpose).
+# You should update Security Group Access with your own IP Address to ensure your instances security.
+#
+# Prerequisites
+# Before you can start this process, you need the following:
+# - Your AWS account must have one VPC available to be created in the selected region
+# - Amazon EC2 key pair ,I have used a keyppair from my AWS account which will be invalidated
+# - Installed Domain in Route 53 which I am presuming to be "kpmg.challenge1.com",I have a different domain 
+# - which I cannot share in this demo code
+# - Installed Certificate (in your selected region ( here it is us-east-2 ) & also in us-east-1) ,here the arn 
+# - from AWS Certificate Manger which I have refered in Code are now invalid.
+#
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+    This is a master template to create a Web Application Architecture.
+    The following task will be built in this template.
+    - Custom VPC with Private and Public Subnet spread across 2 Availability Zones.
+    - Internet Gateway, with a default route on the public subnets.
+    - NAT Gateways (In one Public AZ) and route to private subnets.
+
+    Last Modified: 5th January 2022
+    Author: Raj Kumar Mahanty
+
+###############################################################################################################
+
+Parameters: 
+
+  CH1OWNIP:
+    Default: "0.0.0.0/0"
+    Description: "Update your office/home public ip address"
+    Type: "String"
+
+  CH1KeyName:
+    Default: "MyKey"
+    Description: "Enter an existing EC2 KeyPair. Default is MyKey."
+    Type: "String" 
+
+  CH1TemplateURL:
+    Default: "https://s3.us-east-2.amazonaws.com/cft-templates-challenge1"
+    Description: "Enter an existing S3 Bucket Cloudformation."
+    Type: "String"
+
+  CH1HostedZone:
+    Default: "kpmg.challenge1.com"
+    Description: "Enter an existing Hosted Zone."
+    Type: "String"
+
+  CH1InstanceType: 
+    Description: "Enter t2.micro or m1.small. Default is t2.micro."
+    Type: "String"
+    Default: "t2.micro"
+    AllowedValues: 
+      - "t2.micro"
+      - "m1.small"
+
+
+###############################################################################################################
+#
+# For any additional region & Env, you can add by yourself below.I am just adding a Prod Enviroment in US-East-1
+# and US-East-2
+Mappings:
+  EnvMap:
+
+    staging:
+      ASMIN: '2'
+      ASMAX: '3'
+      ASDES: '2'
+      WEBDOMAIN: "www.kpmg.challenge1.com"
+      CDNDOMAIN: "cdn.kpmg.challenge1.com"
+
+    prod:
+      ASMIN: '2'
+      ASMAX: '5'
+      ASDES: '2'
+      WEBDOMAIN: "www.kpmg.challenge1.com"
+      CDNDOMAIN: "cdn.kpmg.challenge1.com"
+
+  RegionMap:
+  #North Virginia
+    us-east-1:
+      # AMI Instance - Amazon Ubuntu (Inferred) ver.- 20.04, SSD Volume Type - ami-dc9339bf (Free tier eligible)
+      AMI: "ami-0fb653ca2d3203ac1"
+      # AStorage - The storage class to which you want the object to transition.
+      AStorage: "GLACIER"
+      # Update with your own cert ARN HERE!
+      # Assuming you have already upload to AWS Certificate Manager
+      CertARN: "arn:aws:acm:us-east-1:370888776060:certificate/efc1f4f2-2632-4d20-bd8a-fbfbcdb15920"
+  #Ohio
+    us-east-2:
+      AMI: "ami-c55673a0"
+      AStorage: "GLACIER"
+      CertARN: "arn:aws:acm:us-east-2:370888776060:certificate/dc9339bf-4f33-4585-9a48-78cbae67e4f3"
+
+###############################################################################################################
+
+Resources:
+
+  CH1IAMRole:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-iam.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1ServerEnv: !Ref "AWS::StackName"
+
+  CH1S3Bucket:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-s3bucket.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1ServerEnv: !Ref "AWS::StackName"
+        CH1RegionAStorage: !FindInMap ["RegionMap", !Ref "AWS::Region", "AStorage"]
+
+  CH1VPC:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-vpc.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1ServerEnv: !Ref "AWS::StackName"
+        CH1VpcCIDR: "10.2.0.0/16"
+        CH1PublicSubnet1CIDR: "10.2.1.0/24"
+        CH1PublicSubnet2CIDR: "10.2.2.0/24"
+        CH1PrivateSubnet1CIDR: "10.2.3.0/24"
+        CH1PrivateSubnet2CIDR: "10.2.4.0/24"
+        CH1FlowLogRole: !GetAtt "MyIAMRole.Outputs.VPCFlowLogRoleArn"
+
+  CH1SecurityGroup:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-securitygroup.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1ServerEnv: !Ref "AWS::StackName"
+        CH1OWNIP: !Ref "CH1OWNIP"
+        PMVPC: !GetAtt "CH1VPC.Outputs.VPC"
+        CH1NACL: !GetAtt "CH1VPC.Outputs.CH1NetworkACL"
+
+  CH1RDS:
+    Type: "AWS::CloudFormation::Stack"
+    DependsOn:
+    - "MySecurityGroup"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-rds.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1ServerEnv: !Ref "AWS::StackName"
+        DatabaseUser: "startupadmin"
+        DatabasePassword: "0bee082a464"
+        DatabaseName: !Sub "${AWS::StackName}db"
+        DatabaseSize: '5'
+        DatabaseEngine: "mysql"
+        DatabaseInstanceClass: "db.t2.micro"
+        PMCH1RDSSG: !GetAtt "CH1SecurityGroup.Outputs.CH1RDSSG"
+        CH1PrivateSubnets: !GetAtt "CH1VPC.Outputs.PrivateSubnets"
+
+  CH1APPELB:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-elb-appserver.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1ServerEnv: !Ref "AWS::StackName"
+        CH1APPELBSG: !GetAtt "MySecurityGroup.Outputs.CH1APPELBSG"
+        CH1S3Logging: !GetAtt "CH1S3Bucket.Outputs.S3Logging"
+        CH1PrivateSubnets: !GetAtt "CH1VPC.Outputs.PrivateSubnets"
+
+  CH1APPAutoScaling:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-autoscaling-appserver.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1ServerEnv: !Ref "AWS::StackName"
+        CH1KeyName: !Ref "CH1KeyName"
+        CH1InstanceType: !Ref "CH1InstanceType"
+        CH1RegionAMI: !FindInMap ["RegionMap", !Ref "AWS::Region", "AMI"]
+        CH1APPHostSG : !GetAtt "CH1SecurityGroup.Outputs.APPHostSG"
+        CH1APPLoadBalancer: !GetAtt "CH1APPELB.Outputs.APPLoadBalancer"
+        CH1IAMS3CWInstanceProfile: !GetAtt "CH1IAMRole.Outputs.IAMS3CWInstanceProfile"
+        CH1PrivateSubnets: !GetAtt "MyVPC.Outputs.PrivateSubnets"
+        CH1ASMIN: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASMIN"]
+        CH1ASMAX: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASMAX"]
+        CH1ASDES: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASDES"]
+        CH1WEBDOMAIN: !FindInMap ["EnvMap", !Ref "AWS::StackName", "WEBDOMAIN"]
+
+  CH1WEBELB:
+    Type: "AWS::CloudFormation::Stack"
+    DependsOn:
+    - "CH1APPAutoScaling"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-elb-webserver.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1ServerEnv: !Ref "AWS::StackName"
+        CH1Domain1CertARN: !FindInMap ["RegionMap", !Ref "AWS::Region", "CertARN"]
+        CH1CH1WEBELBSG: !GetAtt "CH1SecurityGroup.Outputs.CH1WEBELBSG"
+        CH1PublicSubnets: !GetAtt "CH1VPC.Outputs.PublicSubnets"
+        CH1S3Backup: !GetAtt "CH1S3Bucket.Outputs.S3Backup"
+        CH1S3Logging: !GetAtt "CH1S3Bucket.Outputs.S3Logging"
+
+  CH1WEBAutoScaling:
+    Type: "AWS::CloudFormation::Stack"
+    DependsOn:
+    - "MyWEBELB"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-autoscaling-webserver.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1ServerEnv: !Ref "AWS::StackName"
+        PMKeyName: !Ref "PMKeyName"
+        PMInstanceType: !Ref "PMInstanceType"
+        PMRegionAMI: !FindInMap ["RegionMap", !Ref "AWS::Region", "AMI"]
+        PMProxyHostSG: !GetAtt "MySecurityGroup.Outputs.ProxyHostSG"
+        PMWEBLoadBalancer: !GetAtt "MyWEBELB.Outputs.WEBLoadBalancer"
+        PMIAMS3CWInstanceProfile: !GetAtt "MyIAMRole.Outputs.IAMS3CWInstanceProfile"
+        PMPublicSubnets: !GetAtt "MyVPC.Outputs.PublicSubnets"
+        PMAPPLoadBalancerUrl: !GetAtt "MyAPPELB.Outputs.APPLoadBalancerUrl"
+        PMASMIN: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASMIN"]
+        PMASMAX: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASMAX"]
+        PMASDES: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASDES"]
+        PMWEBDOMAIN: !FindInMap ["EnvMap", !Ref "AWS::StackName", "WEBDOMAIN"]
+
+  CH1CloudWatch:
+    Type: "AWS::CloudFormation::Stack"
+    DependsOn:
+    - "CH1WEBAutoScaling"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-cloudwatch.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1WebScalingGroup: !GetAtt "CH1WEBAutoScaling.Outputs.WebScalingGroup"
+        CH1WebServerScaleUpPolicy: !GetAtt "CH1WEBAutoScaling.Outputs.WebServerScaleUpPolicy"
+        CH1WebServerScaleDownPolicy: !GetAtt "CH1WEBAutoScaling.Outputs.WebServerScaleDownPolicy"
+        CH1AppScalingGroup: !GetAtt "CH1APPAutoScaling.Outputs.AppScalingGroup"
+        CH1APPServerScaleUpPolicy: !GetAtt "CH1APPAutoScaling.Outputs.APPServerScaleUpPolicy"
+        CH1APPServerScaleDownPolicy: !GetAtt "CH1APPAutoScaling.Outputs.APPServerScaleDownPolicy"
+
+  CH1DNS:
+    Type: "AWS::CloudFormation::Stack"
+    DependsOn:
+    - "CH1WEBAutoScaling"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-route53.yaml"
+      TimeoutInMinutes: '5'
+      Parameters:
+        CH1WEBLBDNSName: !GetAtt "CH1WEBELB.Outputs.WEBLBDNSName"
+        CH1WEBLBHostedZoneId: !GetAtt "CH1WEBELB.Outputs.WEBLBHostedZoneId"
+        CH1WEBDOMAIN: !FindInMap ["EnvMap", !Ref "AWS::StackName", "WEBDOMAIN"]
+        CH1HostedZone: !Ref "CH1HostedZone"
+
+
+Outputs:
+
+  Webserver:
+    Description: "Web Server Site"
+    Value:
+      Fn::Join:
+        - ''
+        - - "http://"
+          - !FindInMap ["EnvMap", !Ref "AWS::StackName", "WEBDOMAIN"]
+          - "/"
+
+  # Own Certs
+  # https://cloudonaut.io/pitfall-acm-certificate-cloudfront-cloudformation/
+  # Error : The specified SSL certificate doesn't exist, isn't valid, or doesn't include a valid certificate chain.
+  # But the ACM certificate needs to be created in us-east-1 when used together with CloudFront hence Create the CloudFormation stack in us-east-1.
+
+  CH1Domain1CertARN:
+    Description: "A reference to SSL Certificate ARN of the region"
+    Value: !FindInMap ["RegionMap", "us-east-1", "CertARN"]
+    Export:
+      Name: !Sub "${AWS::StackName}CDN-CH1Domain1CertARN"
+
+  CH1HostedZone:
+    Description: "A reference to SSL Certificate ARN of the region"
+    Value: !Ref "CH1HostedZone"
+    Export:
+      Name: !Sub "${AWS::StackName}CDN-CH1HostedZone"
+
+  CH1CDNDOMAIN:
+    Description: "A reference to SSL Certificate ARN of the region"
+    Value: !FindInMap ["EnvMap", !Ref "AWS::StackName", "CDNDOMAIN"]
+    Export:
+      Name: !Sub "${AWS::StackName}CDN-CH1CDNDOMAIN"
+
+
+
