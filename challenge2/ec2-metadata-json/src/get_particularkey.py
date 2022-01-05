@@ -1,4 +1,4 @@
-from get_fullmetadata import get_fullmetadata
+from get_fullmetadata import get_metadata
 
 
 # https://stackoverflow.com/questions/9807634/find-all-occurrences-of-a-key-in-nested-python-dictionaries-and-lists
