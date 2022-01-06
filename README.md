@@ -8,13 +8,31 @@ AWS Cloud Native Tool - Cloud Formation Template
 Enviroment : 3 Tier - Web Application with Autoscaling and Availability Set enabled ,AWS WAF enabled for Web access Protection from DDOS,SQLInjections etc.
 
 ### Architecture Diagram :
-![infrastructure-overview](images/AWS_WebApp_Design - 2.png)
+![Architecture-Diagram](https://github.com/rajkumarmahanty/challengeskpmg/blob/challenge1/images/AWS_WebApp_Design - 2.png?raw=true)
+
+This reference architecture provides a set of YAML templates for deploying the following AWS services :
+- Amazon IAM
+- Amazon VPC
+- Amazon EC2
+- Amazon ELB
+- Amazon AutoScaling
+- Amazon CloudFront
+- Amazon RDS
+- Amazon S3
+- Amazon Cloudwatch
+- Amazon Route53
+- Amazon Security Group & NACL
+- Amazon WAF Security Automation
 
 ## CloudFormation Template Structure Prerequisites and Explanation :
 
 ### Prerequisites :
 
 The Cloudformation Security Group IP address is open by default (testing purpose). Please update the Security Group Access with your own IP Address to ensure your instances security.
+
+## You can launch this CloudFormation stack in the following Region in your account:
+ - US East (N. Virginia)
+ - US East (Ohio)
 
 Before deploying the templates, you would need the following:
 
