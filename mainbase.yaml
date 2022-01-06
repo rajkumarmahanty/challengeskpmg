@@ -210,18 +210,18 @@ Resources:
       TimeoutInMinutes: '5'
       Parameters:
         CH1ServerEnv: !Ref "AWS::StackName"
-        PMKeyName: !Ref "PMKeyName"
-        PMInstanceType: !Ref "PMInstanceType"
-        PMRegionAMI: !FindInMap ["RegionMap", !Ref "AWS::Region", "AMI"]
-        PMProxyHostSG: !GetAtt "MySecurityGroup.Outputs.ProxyHostSG"
-        PMWEBLoadBalancer: !GetAtt "MyWEBELB.Outputs.WEBLoadBalancer"
-        PMIAMS3CWInstanceProfile: !GetAtt "MyIAMRole.Outputs.IAMS3CWInstanceProfile"
-        PMPublicSubnets: !GetAtt "MyVPC.Outputs.PublicSubnets"
-        PMAPPLoadBalancerUrl: !GetAtt "MyAPPELB.Outputs.APPLoadBalancerUrl"
-        PMASMIN: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASMIN"]
-        PMASMAX: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASMAX"]
-        PMASDES: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASDES"]
-        PMWEBDOMAIN: !FindInMap ["EnvMap", !Ref "AWS::StackName", "WEBDOMAIN"]
+        CH1KeyName: !Ref "CH1KeyName"
+        CH1InstanceType: !Ref "PMInstanceType"
+        CH1RegionAMI: !FindInMap ["RegionMap", !Ref "AWS::Region", "AMI"]
+        CH1ProxyHostSG: !GetAtt "MySecurityGroup.Outputs.ProxyHostSG"
+        CH1WEBLoadBalancer: !GetAtt "CH1WEBELB.Outputs.WEBLoadBalancer"
+        CH1IAMS3CWInstanceProfile: !GetAtt "MyIAMRole.Outputs.IAMS3CWInstanceProfile"
+        CH1PublicSubnets: !GetAtt "CH1VPC.Outputs.PublicSubnets"
+        CH1APPLoadBalancerUrl: !GetAtt "CH1APPELB.Outputs.APPLoadBalancerUrl"
+        CH1ASMIN: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASMIN"]
+        CH1ASMAX: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASMAX"]
+        CH1ASDES: !FindInMap ["EnvMap", !Ref "AWS::StackName", "ASDES"]
+        CH1WEBDOMAIN: !FindInMap ["EnvMap", !Ref "AWS::StackName", "WEBDOMAIN"]
 
   CH1CloudWatch:
     Type: "AWS::CloudFormation::Stack"
@@ -251,7 +251,12 @@ Resources:
         CH1WEBDOMAIN: !FindInMap ["EnvMap", !Ref "AWS::StackName", "WEBDOMAIN"]
         CH1HostedZone: !Ref "CH1HostedZone"
 
-
+  CH1WAF:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "${CH1TemplateURL}/webapp-waf.yaml"
+      TimeoutInMinutes: '5'
+      
 Outputs:
 
   Webserver:
