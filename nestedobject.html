@@ -1,0 +1,52 @@
+<html>  
+    <head> 
+        <title>Challenge3</title>
+    <body>
+        <script type = "text/javascript">  
+            let obj = {
+                a: {
+                    b: {
+                        c: {
+                            d: {
+                                nested:true
+                            } 
+                        }, 
+                    },
+                },
+                x: {
+                    y: {
+                        z:'a',
+                    }
+                }       
+            };
+
+            function getObjectKeys(object, key) {
+            // if you want another split key you can change this.
+                const keys = key.split('.');
+                let obj = object;
+                for (let ikey of keys) {
+                    for (let [objKey, value] of Object.entries(obj)) {
+                    if(!keys.includes(objKey)) {
+                        continue;
+                    }
+                 obj = value;
+                }
+                }
+                return obj;
+            }
+            console.log(getObjectKeys(obj, 'a.b.c.d.nested'));
+            console.log(getObjectKeys(obj, 'x.y.z'));
+            // even if there is another additional key
+            //console.log(getObjectKeys(obj, 'x1.y1.nested')); 
+            console.log(getObjectKeys(obj, 'a.b.c'));
+            //Author - Raj Kumar Mahanty || 06.01.2022
+        </script>  
+        <p>Please see the Console Output for the Values:<br>
+        Example Inputs <br>
+        object = {“a”:{“b”:{“c”:”d”}}} key = a/b/c <br>
+        object = {“x”:{“y”:{“z”:”a”}}} key = x/y/z <br>
+        value = a <br>
+        </p>
+    <body>  
+    </head>  
+</html>  
