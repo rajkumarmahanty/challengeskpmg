@@ -8,7 +8,7 @@ AWS Cloud Native Tool - Cloud Formation Template
 Enviroment : 3 Tier - Web Application with Autoscaling and Availability Set enabled ,AWS WAF enabled for Web access Protection from DDOS,SQLInjections etc.
 
 ### Architecture Diagram :
-![Architecture-Diagram](https://github.com/rajkumarmahanty/challengeskpmg/blob/challenge1/images/AWS_WebApp_Design - 2.png?raw=true)
+![Architecture-Diagram](https://github.com/rajkumarmahanty/challengeskpmg/blob/challenge1/images/AWSWebAppDesign2.png?raw=true)
 
 This reference architecture provides a set of YAML templates for deploying the following AWS services :
 - Amazon IAM
