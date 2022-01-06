@@ -22,6 +22,22 @@ Before deploying the templates, you would need the following:
 3.Installed Domain in Route 53.
 4.Installed Certificate (in us-east-2 & also one in us-east-1) || if you need any other region then add the appropiate region to the mainbase.yaml file and install the certificate for that region
 
+| Template | Description |
+| --- | --- | 
+| [master.yaml](master.yaml) | This is the master template - deploy it to CloudFormation and it includes all of the nested templates automatically. |
+| [infrastructure/webapp-iam.yaml](infrastructure/webapp-iam.yaml) | This template deploys will create policy to allow EC2 instance full access to S3 & CloudWatch, and VPC Logs to CloudWatch. |
+| [infrastructure/webapp-s3bucket.yaml](infrastructure/webapp-s3bucket.yaml) | This template deploys Backup Data Bucket with security data at rest and archive objects greater than 60 days, ELB logging, and Webhosting static content. |
+| [infrastructure/webapp-vpc.yaml](infrastructure/webapp-vpc.yaml) | This template deploys a VPC with a pair of public and private subnets spread across two Availability Zones. It deploys an [Internet gateway](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Internet_Gateway.html), with a default route on the public subnets. It deploys 2 [NAT gateways](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-comparison.html), and default routes for them in the private subnets. |
+| [infrastructure/webapp-securitygroup.yaml](infrastructure/webapp-securitygroup.yaml) | This template contains the [security groups](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html) and [Network ACLs](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ACLs.html) required by the entire stack. |
+| [infrastructure/webapp-rds.yaml](infrastructure/webapp-rds.yaml) | This template deploys a (Mysql) Relational Database Service. |
+| [infrastructure/webapp-elb-appserver.yaml](infrastructure/webapp-elb-appserver.yaml) | This template deploys an Application Load Balancer that exposes our PHP APP services. |
+| [infrastructure/webapp-autoscaling-appserver.yaml](infrastructure/webapp-autoscaling-appserver.yaml) |This template deploys an ECS cluster to the private subnets using an Auto Scaling group. |
+| [infrastructure/webapp-elb-webserver.yaml](infrastructure/webapp-elb-webserver.yaml) | This template deploys a Webserver Load Balancer that exposes our Nginx Proxy services. |
+| [infrastructure/webapp-autoscaling-webserver.yaml](infrastructure/webapp-autoscaling-webserver.yaml) | This template deploys an ECS cluster to the private subnets using an Auto Scaling group. |
+| [infrastructure/webapp-cdn.yaml](infrastructure/webapp-cdn.yaml) | Run this template separately. CDN Deployment is time consuming ~(30-40min to complete deploy). |
+| [infrastructure/webapp-cloudwatch.yaml](infrastructure/webapp-cloudwatch.yaml) | This template deploys Cloudwatch Service, CPU Utilization Alarm. |
+| [infrastructure/webapp-route53.yaml](infrastructure/webapp-route53.yaml) | This template deploys Route 53 recordset to update ELB Alias and CNAME CDN. |
+
 <b>How to Deploy the CFT Templates for deployment of the 3 Tier - WebApp having NGNIX and mySql with AWS WAF Protection</b>
 
 Steps :
@@ -85,12 +101,14 @@ Deploy another CloudFormation stack from the same set of templates to create a n
 Change the VPC or subnet IP ranges ( IP Ranges taken are imaginery and not related to any Enterprise Allocation ) 
 This set of templates deploys the following network design:
 
-Item			CIDR Range	Usable IPs	Description
-VPC			10.2.0.0/16	65,536		The whole range used for the VPC and all subnets
-Public Subnet 1		10.2.1.0/24	251		The public subnet in the first Availability Zone
-Public Subnet 2		10.2.2.0/24	251		The public subnet in the second Availability Zone
-Private Subnet 1	10.2.3.0/24	251		The private subnet in the first Availability Zone
-Private Subnet 2	10.2.4.0/24	251		The private subnet in the second Availability Zone
+| Item | CIDR Range | Usable IPs | Description |
+| --- | --- | --- | --- |
+| VPC | 10.0.0.0/16 | 65,536 | The whole range used for the VPC and all subnets |
+| Public Subnet 1 | 10.0.1.0/24 | 251 | The public subnet in the first Availability Zone |
+| Public Subnet 2 | 10.0.2.0/24 | 251 | The public subnet in the second Availability Zone |
+| Private Subnet 1 | 10.0.3.0/24 | 251 | The private subnet in the first Availability Zone |
+| Private Subnet 2 | 10.0.4.0/24 | 251 | The private subnet in the second Availability Zone |
+
 You can adjust the following section of the master.yaml template:
 
 You can update Domain Name ( CH1HostedZone ),Sub-Domain,AutoScaling Parameters,SSL ARN,CIDR Ranges and DB Config in mainbase.yaml as per your need
