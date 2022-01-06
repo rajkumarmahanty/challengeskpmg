@@ -11,7 +11,7 @@ Architecture Diagram :
 
 ## CloudFormation Template Structure Prerequisites and Explanation :
 
-###Prerequisites :
+### Prerequisites :
 
 The Cloudformation Security Group IP address is open by default (testing purpose). Please update the Security Group Access with your own IP Address to ensure your instances security.
 
@@ -22,7 +22,7 @@ Before deploying the templates, you would need the following:
 - Installed Domain in Route 53.
 - Installed Certificate (in us-east-2 & also one in us-east-1) || if you need any other region then add the appropiate region to the mainbase.yaml file and install the certificate for that region
 
-###Cloud Formation Template Details
+### Cloud Formation Template Details
 
 | Template | Description |
 | --- | --- | 
@@ -101,7 +101,7 @@ As well as configuring Auto Scaling for the ECS hosts (your pool of compute), yo
 Deploy multiple environments (e.g., staging, production)
 Deploy another CloudFormation stack from the same set of templates to create a new environment. The stack name provided when deploying the stack is prefixed to all taggable resources (e.g., EC2 instances, VPCs, etc.) so you can distinguish the different environment resources in the AWS Management Console.
   
-###VPC Design and Assumptions
+### VPC Design and Assumptions
 
 Change the VPC or subnet IP ranges ( IP Ranges taken are imaginery and not related to any Enterprise Allocation ) 
 This set of templates deploys the following network design:
