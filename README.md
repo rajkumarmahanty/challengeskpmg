@@ -62,7 +62,7 @@ Before deploying the templates, you would need the following:
 
 ## How to Deploy the CFT Templates for deployment of the 3 Tier - WebApp having NGNIX and mySql with AWS WAF Protection
 
-Steps :
+Steps for Manual Deployment :
 
 1. Get started and deploy this into my AWS account
 2. You can launch this CloudFormation stack in your account:
@@ -119,6 +119,10 @@ As well as configuring Auto Scaling for the ECS hosts (your pool of compute), yo
 
 Deploy multiple environments (e.g., staging, production)
 Deploy another CloudFormation stack from the same set of templates to create a new environment. The stack name provided when deploying the stack is prefixed to all taggable resources (e.g., EC2 instances, VPCs, etc.) so you can distinguish the different environment resources in the AWS Management Console.
+ 
+### Steps for Deployment via AWS Native DevOps || You can configure the deployment as per the need.
+ 
+![DevOps-Diagram](https://github.com/rajkumarmahanty/challengeskpmg/blob/challenge1/images/NativeDevOpsPipeline.png?raw=true)
   
 ### VPC Design and Assumptions
 
