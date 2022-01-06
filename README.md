@@ -8,7 +8,7 @@ AWS Cloud Native Tool - Cloud Formation Template
 Enviroment : 3 Tier - Web Application with Autoscaling and Availability Set enabled ,AWS WAF enabled for Web access Protection from DDOS,SQLInjections etc.
 
 ### Architecture Diagram :
-! [Architecture-Diagram](images/AWS_WebApp_Design - 2.png)
+![infrastructure-overview](images/AWS_WebApp_Design - 2.png)
 
 ## CloudFormation Template Structure Prerequisites and Explanation :
 
