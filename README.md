@@ -9,7 +9,7 @@ Enviroment : 3 Tier - Web Application with Autoscaling and Availability Set enab
 
 Architecture Diagram :
 
-CloudFormation Template Structure Prerequisites and Explanation :
+## CloudFormation Template Structure Prerequisites and Explanation :
 
 Prerequisites :
 
@@ -17,28 +17,29 @@ The Cloudformation Security Group IP address is open by default (testing purpose
 
 Before deploying the templates, you would need the following:
 
-1.Your AWS account must have one VPC available to be created in the selected region
-2.Amazon EC2 key pair
-3.Installed Domain in Route 53.
-4.Installed Certificate (in us-east-2 & also one in us-east-1) || if you need any other region then add the appropiate region to the mainbase.yaml file and install the certificate for that region
+- Your AWS account must have one VPC available to be created in the selected region
+- Amazon EC2 key pair
+- Installed Domain in Route 53.
+- Installed Certificate (in us-east-2 & also one in us-east-1) || if you need any other region then add the appropiate region to the mainbase.yaml file and install the certificate for that region
 
 | Template | Description |
 | --- | --- | 
-| [master.yaml](master.yaml) | This is the master template - deploy it to CloudFormation and it includes all of the nested templates automatically. |
-| [infrastructure/webapp-iam.yaml](infrastructure/webapp-iam.yaml) | This template deploys will create policy to allow EC2 instance full access to S3 & CloudWatch, and VPC Logs to CloudWatch. |
-| [infrastructure/webapp-s3bucket.yaml](infrastructure/webapp-s3bucket.yaml) | This template deploys Backup Data Bucket with security data at rest and archive objects greater than 60 days, ELB logging, and Webhosting static content. |
-| [infrastructure/webapp-vpc.yaml](infrastructure/webapp-vpc.yaml) | This template deploys a VPC with a pair of public and private subnets spread across two Availability Zones. It deploys an [Internet gateway](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Internet_Gateway.html), with a default route on the public subnets. It deploys 2 [NAT gateways](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-comparison.html), and default routes for them in the private subnets. |
-| [infrastructure/webapp-securitygroup.yaml](infrastructure/webapp-securitygroup.yaml) | This template contains the [security groups](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html) and [Network ACLs](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ACLs.html) required by the entire stack. |
-| [infrastructure/webapp-rds.yaml](infrastructure/webapp-rds.yaml) | This template deploys a (Mysql) Relational Database Service. |
-| [infrastructure/webapp-elb-appserver.yaml](infrastructure/webapp-elb-appserver.yaml) | This template deploys an Application Load Balancer that exposes our PHP APP services. |
-| [infrastructure/webapp-autoscaling-appserver.yaml](infrastructure/webapp-autoscaling-appserver.yaml) |This template deploys an ECS cluster to the private subnets using an Auto Scaling group. |
-| [infrastructure/webapp-elb-webserver.yaml](infrastructure/webapp-elb-webserver.yaml) | This template deploys a Webserver Load Balancer that exposes our Nginx Proxy services. |
-| [infrastructure/webapp-autoscaling-webserver.yaml](infrastructure/webapp-autoscaling-webserver.yaml) | This template deploys an ECS cluster to the private subnets using an Auto Scaling group. |
-| [infrastructure/webapp-cdn.yaml](infrastructure/webapp-cdn.yaml) | Run this template separately. CDN Deployment is time consuming ~(30-40min to complete deploy). |
-| [infrastructure/webapp-cloudwatch.yaml](infrastructure/webapp-cloudwatch.yaml) | This template deploys Cloudwatch Service, CPU Utilization Alarm. |
-| [infrastructure/webapp-route53.yaml](infrastructure/webapp-route53.yaml) | This template deploys Route 53 recordset to update ELB Alias and CNAME CDN. |
+| [mainbase.yaml](mainbase.yaml) | This is the main master template - deploy it to CloudFormation and it includes all of the nested templates automatically. |
+| [infracode-cft/webapp-iam.yaml](infracode-cft/webapp-iam.yaml) | This template creates policy to allow EC2 instance full access to S3 & CloudWatch, and VPC Logs to CloudWatch. |
+| [infracode-cft/webapp-s3bucket.yaml](infracode-cft/webapp-s3bucket.yaml) | This template deploys the Backup Data Bucket with security data at rest and archive objects greater than 60 days, ELB logging, and Webhosting static content. |
+| [infracode-cft/webapp-vpc.yaml](infracode-cft/webapp-vpc.yaml) | This template deploys a VPC with a pair of public and private subnets spread across two Availability Zones. It deploys an [Internet gateway](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Internet_Gateway.html), with a default route on the public subnets. It deploys 2 [NAT gateways](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-comparison.html), and default routes for them in the private subnets. |
+| [infracode-cft/webapp-securitygroup.yaml](infracode-cft/webapp-securitygroup.yaml) | This template contains the [security groups](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html) and [Network ACLs](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ACLs.html) required by the entire stack. |
+| [infracode-cft/webapp-rds.yaml](infracode-cft/webapp-rds.yaml) | This template deploys a (Mysql) Relational Database Service. |
+| [infracode-cft/webapp-elb-appserver.yaml](infracode-cft/webapp-elb-appserver.yaml) | This template deploys an Application Load Balancer that exposes our PHP APP services. |
+| [infracode-cft/webapp-autoscaling-appserver.yaml](infracode-cft/webapp-autoscaling-appserver.yaml) |This template deploys an ECS cluster to the private subnets using an Auto Scaling group. |
+| [infracode-cft/webapp-elb-webserver.yaml](infracode-cft/webapp-elb-webserver.yaml) | This template deploys a Webserver Load Balancer that exposes our Nginx Proxy services. |
+| [infracode-cft/webapp-autoscaling-webserver.yaml](infracode-cft/webapp-autoscaling-webserver.yaml) | This template deploys an ECS cluster to the private subnets using an Auto Scaling group. |
+| [infracode-cft/webapp-cdn.yaml](infracode-cft/webapp-cdn.yaml) | Run this template separately. CDN Deployment is time consuming ~(30-40min to complete deploy). |
+| [infracode-cft/webapp-cloudwatch.yaml](infracode-cft/webapp-cloudwatch.yaml) | This template deploys Cloudwatch Alert Service, CPU Utilization Alarm. |
+| [infracode-cft/webapp-route53.yaml](infracode-cft/webapp-route53.yaml) | This template deploys Route 53 recordset to update ELB Alias and CNAME CDN. |
+| [infracode-cft/webapp-waf.yaml](infracode-cft/webapp-waf.yaml) | This template deploys AWS WAF Secure Automation to deploy AWS WAF web ACL with eight preconfigured. |
 
-<b>How to Deploy the CFT Templates for deployment of the 3 Tier - WebApp having NGNIX and mySql with AWS WAF Protection</b>
+## How to Deploy the CFT Templates for deployment of the 3 Tier - WebApp having NGNIX and mySql with AWS WAF Protection
 
 Steps :
 
@@ -103,11 +104,11 @@ This set of templates deploys the following network design:
 
 | Item | CIDR Range | Usable IPs | Description |
 | --- | --- | --- | --- |
-| VPC | 10.0.0.0/16 | 65,536 | The whole range used for the VPC and all subnets |
-| Public Subnet 1 | 10.0.1.0/24 | 251 | The public subnet in the first Availability Zone |
-| Public Subnet 2 | 10.0.2.0/24 | 251 | The public subnet in the second Availability Zone |
-| Private Subnet 1 | 10.0.3.0/24 | 251 | The private subnet in the first Availability Zone |
-| Private Subnet 2 | 10.0.4.0/24 | 251 | The private subnet in the second Availability Zone |
+| VPC | 10.2.0.0/16 | 65,536 | The whole range used for the VPC and all subnets |
+| Public Subnet 1 | 10.2.1.0/24 | 251 | The public subnet in the first Availability Zone |
+| Public Subnet 2 | 10.2.2.0/24 | 251 | The public subnet in the second Availability Zone |
+| Private Subnet 1 | 10.2.3.0/24 | 251 | The private subnet in the first Availability Zone |
+| Private Subnet 2 | 10.2.4.0/24 | 251 | The private subnet in the second Availability Zone |
 
 You can adjust the following section of the master.yaml template:
 
